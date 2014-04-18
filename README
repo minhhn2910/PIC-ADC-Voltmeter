@@ -1,0 +1,4 @@
+This program is written in Assembly for PIC Microcontroller. It implemented the ADC to simulate the job of Volmeter in reality with the suport of LCD screen.
+We'd also provided the Proteus simulation file for the testing purpose.
+It's recommended to open this project in MPLAB http://www.microchip.com/
+
