@@ -1,0 +1,13 @@
+Warning[203] C:\PIC\PROJECT\PROJECTAD.ASM 184 : Found opcode in column 1. (return)
+Warning[203] C:\PIC\PROJECT\PROJECTAD.ASM 200 : Found opcode in column 1. (return)
+Warning[202] C:\PIC\PROJECT\PROJECTAD.ASM 204 : Argument out of range.  Least significant bits used.
+Warning[202] C:\PIC\PROJECT\PROJECTAD.ASM 207 : Argument out of range.  Least significant bits used.
+Warning[202] C:\PIC\PROJECT\PROJECTAD.ASM 210 : Argument out of range.  Least significant bits used.
+Warning[203] C:\PIC\PROJECT\PROJECTAD.ASM 212 : Found opcode in column 1. (return)
+Warning[203] C:\PIC\PROJECT\PROJECTAD.ASM 229 : Found opcode in column 1. (return)
+Warning[202] C:\PIC\PROJECT\PROJECTAD.ASM 302 : Argument out of range.  Least significant bits used.
+Warning[202] C:\PIC\PROJECT\PROJECTAD.ASM 308 : Argument out of range.  Least significant bits used.
+Warning[203] C:\PIC\PROJECT\PROJECTAD.ASM 322 : Found opcode in column 1. (return)
+Warning[205] C:\PIC\PROJECT\PROJECTAD.ASM 328 : Found directive in column 1. (org)
+Warning[203] C:\PIC\PROJECT\PROJECTAD.ASM 332 : Found opcode in column 1. (addwf)
+Warning[203] C:\PIC\PROJECT\PROJECTAD.ASM 333 : Found opcode in column 1. (addwf)

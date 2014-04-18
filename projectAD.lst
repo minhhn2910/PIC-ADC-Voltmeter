@@ -1,0 +1,1748 @@
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001                         #include        p18f4520.inc
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ;  MPASM PIC18F4520 processor include
+                      00005 ; 
+                      00006 ;  (c) Copyright 1999-2007 Microchip Technology, All rights reserved
+                      00007 ;==========================================================================
+                      00008 
+                      01336         LIST
+                      00002                         radix           dec
+                      00003 
+                      00004                         #define         LCD_D           PORTD
+                      00005                         #define         LCD_D4          LATD,RD0
+                      00006                         #define         LCD_D5          LATD,RD1
+                      00007                         #define         LCD_D6          LATD,RD2
+                      00008                         #define         LCD_D7          LATD,RD3
+                      00009                         
+                      00010                         #define         LCD_D4_DIR      TRISD,RD0
+                      00011                         #define         LCD_D5_DIR      TRISD,RD1
+                      00012                         #define         LCD_D6_DIR      TRISD,RD2
+                      00013                         #define         LCD_D7_DIR      TRISD,RD3       ; input and output
+                      00014 
+                      00015                         #define         LCD_ON          LATD,RD7
+                      00016                         #define         LCD_E           LATD,RD6
+                      00017                         #define         LCD_RW          LATD,RD5
+                      00018                         #define         LCD_RS          LATD,RD4
+                      00019 
+                      00020                         #define         LCD_ON_DIR      TRISD,RD7
+                      00021                         #define         LCD_E_DIR       TRISD,RD6
+                      00022                         #define         LCD_RW_DIR      TRISD,RD5
+                      00023                         #define         LCD_RS_DIR      TRISD,RD4
+                      00024 
+                      00025                         code            0
+000000 EF?? F???      00026                         goto            start
+                      00027                         org                     08h
+000008 EF?? F???      00028                         goto            isr_high
+                      00029                         org                     18h
+000018 EF?? F???      00030                         goto            isr_low
+                      00031 
+                      00032                         udata
+                      00033 ;--------------bien cho convert--------------
+                      00034 
+                      00035 ;bien dung trong phep chia
+000000                00036 a_var res 1
+000001                00037 b_var res 1             ;perform a/b = result + mod   ; fixed b = 10
+000002                00038 result res 1
+000003                00039 mod res 1
+000004                00040 out1 res 1  ; phan nguyen
+000005                00041 out2 res 1      ; 2 so phan thap phan 
+000006                00042 out3 res 1 ; 2 so cuoi
+000007                00043 in_high res 1
+000008                00044 in_low res 1
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00045 ; => ket qua 1.2345
+                      00046 ; ket qua se co do tin cay 5*10^-3
+                      00047 ; buoc nhay don vi = 5/1023
+000009                00048 temp1 res 1 
+00000A                00049 temp2 res 1
+00000B                00050 temp3 res 1
+                      00051 ; bien tam dung trong luc cong
+                      00052 
+                      00053 
+                      00054 ; ------------- bien tam -----------
+00000C                00055 high_temp res 1
+00000D                00056 low_temp res 1
+                      00057 
+                      00058 ;-----bien lcd
+00000E                00059 delay           res                     1
+00000F                00060 delay_1         res                     1
+000010                00061 command         res                     1
+000011                00062 data_4bit       res                     1
+000012                00063 row                     res                     1
+000013                00064 col                     res                     1
+000014                00065 addr            res                     1
+000015                00066 char            res                     1
+000016                00067 dl_1sec         res                     1
+000017                00068 dem_BCD         res                     1
+000018                00069 decode_var      res                     1
+                      00070 
+                      00071 
+                      00072 ;---------------------CODE-------------
+                      00073 PRG                     code
+000000                00074 start   
+                      00075 
+000000 EC?? F???      00076                         call            init_lcd                        ; Khoi dong LCD
+000004 EC?? F???      00077                         call            init_AD                         ; Khoi dong A/D 
+                      00078 
+000008                00079 main                    
+000008 82C2           00080                         bsf     ADCON0,GO               ;start conversion
+00000A B2C2           00081                         btfsc   ADCON0,GO
+00000C D???           00082                         bra     $-2
+00000E CFC4 F???      00083                         movff   ADRESH,in_high
+000012 CFC3 F???      00084                         movff   ADRESL,in_low
+                      00085 ;check xem input co thay doi k, neu k thay doi thi quay ve main
+000016 50??           00086                         movf high_temp,w 
+000018 62??           00087                         cpfseq in_high
+00001A D???           00088                         bra main_continue
+00001C 50??           00089                         movf low_temp,w
+00001E 62??           00090                         cpfseq in_low
+000020 D???           00091                         bra main_continue
+000022 D???           00092                         bra main
+000024                00093 main_continue
+000024 C??? F???      00094                         movff in_high,high_temp
+000028 C??? F???      00095                         movff in_low,low_temp
+                      00096 
+00002C EC?? F???      00097                         call init_convert               ; reset convert
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+000030 EC?? F???      00098                         call convert
+000034 EC?? F???      00099                         call round_number               
+                      00100 
+000038 6A??           00101                         clrf            col                                     ; Tro ve toa do 0,0
+00003A 6A??           00102                         clrf            row
+00003C EC?? F???      00103                         call            lcd_goto_xy
+                      00104 ;xuat gia tri ADC
+000040 0E41           00105                         movlw           'A'
+000042 6E??           00106                         movwf           char
+000044 EC?? F???      00107                         call            lcd_print_char
+000048 0E44           00108                         movlw           'D'
+00004A 6E??           00109                         movwf           char
+00004C EC?? F???      00110                         call            lcd_print_char
+000050 0E43           00111                         movlw           'C'
+000052 6E??           00112                         movwf           char
+000054 EC?? F???      00113                         call            lcd_print_char
+000058 0E3D           00114                         movlw           '='
+00005A 6E??           00115                         movwf           char
+00005C EC?? F???      00116                         call            lcd_print_char
+000060 C??? F???      00117                         movff           in_high,decode_var 
+000064 EC?? F???      00118                         call            decode_ascii            ; Giai ma binary sang ma ASCII
+000068 EC?? F???      00119                         call            lcd_print_char          ; 
+00006C C??? F???      00120                         movff           in_low,decode_var 
+000070 EC?? F???      00121                         call            decode_ascii            ; Giai ma binary sang ma ASCII
+000074 EC?? F???      00122                         call            lcd_print_char          ; 
+                      00123 
+                      00124 ; di chuyen den hang thu 2      
+000078 6A??           00125                         clrf            col
+00007A 0E01           00126                         movlw           .1
+00007C 6E??           00127                         movwf           row
+00007E EC?? F???      00128                         call            lcd_goto_xy
+                      00129 
+000082 0E56           00130                         movlw           'V'
+000084 6E??           00131                         movwf           char
+000086 EC?? F???      00132                         call            lcd_print_char
+00008A 0E6F           00133                         movlw           'o'
+00008C 6E??           00134                         movwf           char
+00008E EC?? F???      00135                         call            lcd_print_char
+000092 0E6C           00136                         movlw           'l'
+000094 6E??           00137                         movwf           char
+000096 EC?? F???      00138                         call            lcd_print_char
+00009A 0E74           00139                         movlw           't'
+00009C 6E??           00140                         movwf           char
+00009E EC?? F???      00141                         call            lcd_print_char
+0000A2 0E3D           00142                         movlw           '='
+0000A4 6E??           00143                         movwf           char
+0000A6 EC?? F???      00144                         call            lcd_print_char          ; Xuat ra chu 'LCD'
+                      00145                         
+                      00146                         ;out1
+0000AA C??? F???      00147                         movff           out1,decode_var ; Xuat du lieu ra LCD
+0000AE EC?? F???      00148                         call            decode_ascii            ; Giai ma binary sang ma ASCII
+0000B2 EC?? F???      00149                         call            lcd_print_char          ; Xuat ra LCD           
+0000B6 0E2E           00150                         movlw           '.'
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0000B8 6E??           00151                         movwf           char
+0000BA EC?? F???      00152                         call            lcd_print_char          
+                      00153                         
+                      00154                         ;out2
+0000BE C??? F???      00155                         movff           out2,a_var      ; chuan bi cho phep chia
+0000C2 EC?? F???      00156                         call            devide8
+0000C6 C??? F???      00157                         movff           result,decode_var 
+0000CA EC?? F???      00158                         call            decode_ascii            ; Giai ma binary sang ma ASCII
+0000CE EC?? F???      00159                         call            lcd_print_char          ; 
+0000D2 C??? F???      00160                         movff           mod,decode_var  ; 
+0000D6 EC?? F???      00161                         call            decode_ascii            ; Giai ma binary sang ma ASCII
+0000DA EC?? F???      00162                         call            lcd_print_char          ;
+                      00163                         
+                      00164         ;               call            delay1s                         ; giu cham 1sec
+                      00165 
+0000DE D???           00166                         bra                     main
+                      00167 
+                      00168         ;-------- Test  --------;
+                      00169                 
+0000E0 0E0F           00170 debug           movlw           0x0f
+0000E2 6EC1           00171                         movwf           ADCON1                          ; Port digital
+0000E4 6A8A           00172                         clrf            LATB                            ; PortB xuat
+0000E6 9293           00173                         bcf                     TRISB,RB1
+0000E8 728A           00174 debug1          btg                     LATB,RB1                        ; Phat xung BR1                 
+0000EA D???           00175                         bra                     debug1
+                      00176 
+                      00177                         
+                      00178         ;-----------------Init-------------------
+0000EC                00179 init_convert
+                      00180         ; buoc nhay = 0.004888
+0000EC 6A??           00181         clrf out1
+0000EE 6A??           00182         clrf out2
+0000F0 6A??           00183         clrf out3
+Warning[203]: Found opcode in column 1. (return)
+0000F2 0012           00184 return  
+                      00185 
+0000F4                00186 init_AD
+0000F4 0E8E           00187         movlw   b'10001110'             ;RA0 = analog input
+0000F6 6EC1           00188         movwf   ADCON1
+                      00189         
+0000F8 0EC1           00190         movlw           b'11000001'                     ; Chon RC osc, AN0 input
+0000FA 6EC2           00191         movwf           ADCON0                          ; Cho phep A_D
+                      00192         
+0000FC 0E01           00193         movlw   0x01
+0000FE 6EC0           00194         movwf   ADCON2
+                      00195 
+000100 8EC0           00196         bsf             ADCON2,7
+                      00197         
+000102 EC?? F???      00198         call            delay100us                      ; Giu cham > 15 cycles
+                      00199         
+Warning[203]: Found opcode in column 1. (return)
+000106 0012           00200 return
+                      00201 
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00202         ;----------------Convert---------------         
+000108                00203 sum_product                     ; cong temp vao out sau khi nhan xong;
+Warning[202]: Argument out of range.  Least significant bits used.
+000108 5000           00204         movf temp3,WREG
+00010A 26??           00205         addwf out3
+00010C EC?? F???      00206         call adjust
+Warning[202]: Argument out of range.  Least significant bits used.
+000110 5000           00207         movf temp2,WREG
+000112 26??           00208         addwf out2
+000114 EC?? F???      00209         call adjust     
+Warning[202]: Argument out of range.  Least significant bits used.
+000118 5000           00210         movf temp1,WREG
+00011A 26??           00211         addwf out1
+Warning[203]: Found opcode in column 1. (return)
+00011C 0012           00212 return
+                      00213 
+00011E                00214 adjust ; dieu chinh lai cac bien out < 100
+00011E 0E63           00215         movlw .99
+000120 64??           00216         cpfsgt out3
+000122 D???           00217         bra continue3
+000124 0E64           00218         movlw .100
+000126 5E??           00219         subwf out3
+000128 2A??           00220         incf out2
+00012A                00221 continue3
+00012A 0E63           00222         movlw .99
+00012C 64??           00223         cpfsgt out2
+00012E D???           00224         bra continue2
+000130 0E64           00225         movlw .100
+000132 5E??           00226         subwf out2
+000134 2A??           00227         incf out1
+000136                00228 continue2       
+Warning[203]: Found opcode in column 1. (return)
+000136 0012           00229 return
+                      00230 
+000138                00231 convert ; ham tinh toan chinh : xet tung bit cua 2 thanh ghi, cong voi gia tri tuong ung
+000138 A2??           00232         btfss in_high,1
+00013A D???           00233         bra con_9
+00013C 0E09           00234         movlw .9        ; bit so 9 duoc set
+00013E EC?? F???      00235         call table
+000142 EC?? F???      00236         call sum_product
+000146                00237 con_9
+000146 A0??           00238         btfss in_high,0
+000148 D???           00239         bra con_8
+00014A 0E08           00240         movlw .8        ; bit so 8 duoc set
+00014C EC?? F???      00241         call table
+000150 EC?? F???      00242         call sum_product
+000154                00243 con_8
+000154 AE??           00244         btfss in_low,7
+000156 D???           00245         bra con_7
+000158 0E07           00246         movlw .7        ; bit so 7 duoc set
+00015A EC?? F???      00247         call table
+00015E EC?? F???      00248         call sum_product
+000162                00249 con_7
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+000162 AC??           00250         btfss in_low,6
+000164 D???           00251         bra con_6
+000166 0E06           00252         movlw .6        ; bit so 6 duoc set
+000168 EC?? F???      00253         call table
+00016C EC?? F???      00254         call sum_product
+000170                00255 con_6
+000170 AA??           00256         btfss in_low,5
+000172 D???           00257         bra con_5
+000174 0E05           00258         movlw .5        ; bit so 5 duoc set
+000176 EC?? F???      00259         call table
+00017A EC?? F???      00260         call sum_product
+00017E                00261 con_5
+00017E A8??           00262         btfss in_low,4
+000180 D???           00263         bra con_4
+000182 0E04           00264         movlw .4        ; bit so 4 duoc set
+000184 EC?? F???      00265         call table
+000188 EC?? F???      00266         call sum_product
+00018C                00267 con_4
+00018C A6??           00268         btfss in_low,3
+00018E D???           00269         bra con_3
+000190 0E03           00270         movlw .3        ; bit so 3 duoc set
+000192 EC?? F???      00271         call table
+000196 EC?? F???      00272         call sum_product
+00019A                00273 con_3
+00019A A4??           00274         btfss in_low,2
+00019C D???           00275         bra con_2
+00019E 0E02           00276         movlw .2        ; bit so 2 duoc set
+0001A0 EC?? F???      00277         call table
+0001A4 EC?? F???      00278         call sum_product
+0001A8                00279 con_2
+0001A8 A2??           00280         btfss in_low,1
+0001AA D???           00281         bra con_1
+0001AC 0E01           00282         movlw .1        ; bit so 1 duoc set
+0001AE EC?? F???      00283         call table
+0001B2 EC?? F???      00284         call sum_product
+0001B6                00285 con_1
+0001B6 A0??           00286         btfss in_low,0
+0001B8 D???           00287         bra con_0
+0001BA 0E00           00288         movlw .0 ; bit so 0 duoc set
+0001BC EC?? F???      00289         call table
+0001C0 EC?? F???      00290         call sum_product
+0001C4                00291 con_0
+0001C4 0012           00292         return  
+                      00293         
+                      00294 ;-------------------------------ham chia so 8 bit---------------------------
+0001C6                00295 devide8 ;a_var = b_var * result + mod
+                      00296 ; init
+0001C6 0E0A           00297         movlw .10
+0001C8 6E??           00298         movwf b_var
+0001CA 6A??           00299         clrf result
+                      00300 ;end init
+0001CC                00301 devide8_next
+Warning[202]: Argument out of range.  Least significant bits used.
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0001CC 5000           00302         movf a_var,WREG
+0001CE 64??           00303         cpfsgt b_var
+0001D0 D???           00304         bra continue_devide     ;a_var >= b
+0001D2 C??? F???      00305         movff a_var,mod ;finish (a<b)
+0001D6 0012           00306         return
+0001D8                00307 continue_devide
+Warning[202]: Argument out of range.  Least significant bits used.
+0001D8 5000           00308         movf b_var,WREG                 
+0001DA 5E??           00309         subwf a_var             ;a = a-b
+0001DC 2A??           00310         incf result
+0001DE D???           00311         bra devide8_next
+                      00312 
+0001E0                00313 round_number
+0001E0 C??? F???      00314         movff           out3,a_var      ; chuan bi cho phep chia
+0001E4 EC?? F???      00315         call            devide8
+0001E8 0E04           00316         movlw           .4
+0001EA 64??           00317         cpfsgt          result
+0001EC D???           00318         bra finish_round
+0001EE 2A??           00319         incf out2
+0001F0 EC?? F???      00320         call adjust
+0001F4                00321 finish_round
+Warning[203]: Found opcode in column 1. (return)
+0001F4 0012           00322 return
+                      00323         
+                      00324 
+                      00325 
+                      00326 
+                      00327 
+Warning[205]: Found directive in column 1. (org)
+                      00328 org 0x500
+                      00329 
+000500                00330 table 
+                      00331         ; xu ly w + pc
+Warning[203]: Found opcode in column 1. (addwf)
+000500 24E8           00332 addwf WREG,0    ; wreg * 2
+Warning[203]: Found opcode in column 1. (addwf)
+000502 26F9           00333 addwf PCL,1
+000504 D???           00334         bra bit0
+000506 D???           00335         bra bit1
+000508 D???           00336         bra bit2
+00050A D???           00337         bra bit3
+00050C D???           00338         bra bit4
+00050E D???           00339         bra bit5
+000510 D???           00340         bra bit6
+000512 D???           00341         bra bit7
+000514 D???           00342         bra bit8
+000516 D???           00343         bra bit9        
+000518 D???           00344         bra bit8
+00051A D???           00345         bra bit9        
+00051C D???           00346         bra bit8
+00051E D???           00347         bra bit9        
+000520 D???           00348         bra bit8
+000522 D???           00349         bra bit9        
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00350 ;       bat dau nap gia tri cho temp
+                      00351 ;bit = 0        0.0049
+000524                00352 bit0
+000524 6A??           00353         clrf temp1
+000526 6A??           00354         clrf temp2
+000528 0E31           00355         movlw .49
+00052A 6E??           00356         movwf temp3
+00052C 0012           00357         return
+                      00358 ;bit = 1        0.0098
+00052E                00359 bit1
+00052E 6A??           00360         clrf temp1
+000530 6A??           00361         clrf temp2
+000532 0E62           00362         movlw .98
+000534 6E??           00363         movwf temp3
+000536 0012           00364         return
+                      00365 ;bit = 2        0.0196
+000538                00366 bit2
+000538 6A??           00367         clrf temp1
+00053A 0E01           00368         movlw .01
+00053C 6E??           00369         movwf temp2
+00053E 0E60           00370         movlw .96
+000540 6E??           00371         movwf temp3
+000542 0012           00372         return
+                      00373 ;bit = 3        0.0391
+000544                00374 bit3
+000544 6A??           00375         clrf temp1
+000546 0E03           00376         movlw .03
+000548 6E??           00377         movwf temp2
+00054A 0E5B           00378         movlw .91
+00054C 6E??           00379         movwf temp3
+00054E 0012           00380         return
+                      00381 ;bit = 4        0.0782
+000550                00382 bit4
+000550 6A??           00383         clrf temp1
+000552 0E07           00384         movlw .07
+000554 6E??           00385         movwf temp2
+000556 0E52           00386         movlw .82
+000558 6E??           00387         movwf temp3
+00055A 0012           00388         return
+                      00389 ;bit = 5        0.1564
+00055C                00390 bit5
+00055C 6A??           00391         clrf temp1
+00055E 0E0F           00392         movlw .15
+000560 6E??           00393         movwf temp2
+000562 0E40           00394         movlw .64
+000564 6E??           00395         movwf temp3
+000566 0012           00396         return
+                      00397 ;bit = 6        0.3128
+000568                00398 bit6
+000568 6A??           00399         clrf temp1
+00056A 0E1F           00400         movlw .31
+00056C 6E??           00401         movwf temp2
+00056E 0E1C           00402         movlw .28
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE  9
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+000570 6E??           00403         movwf temp3
+000572 0012           00404         return
+                      00405 ;bit = 7        0.6256
+000574                00406 bit7
+000574 6A??           00407         clrf temp1
+000576 0E3E           00408         movlw .62
+000578 6E??           00409         movwf temp2
+00057A 0E38           00410         movlw .56
+00057C 6E??           00411         movwf temp3
+00057E 0012           00412         return
+                      00413 ;bit = 8        1.2512
+000580                00414 bit8
+000580 0E01           00415         movlw .1
+000582 6E??           00416         movwf temp1
+000584 0E19           00417         movlw .25
+000586 6E??           00418         movwf temp2
+000588 0E0C           00419         movlw .12
+00058A 6E??           00420         movwf temp3
+00058C 0012           00421         return
+                      00422 ;bit = 9        2.5024
+00058E                00423 bit9
+00058E 0E02           00424         movlw .2
+000590 6E??           00425         movwf temp1
+000592 0E32           00426         movlw .50
+000594 6E??           00427         movwf temp2
+000596 0E18           00428         movlw .24
+000598 6E??           00429         movwf temp3
+00059A 0012           00430         return
+                      00431 
+                      00432 
+                      00433 
+                      00434 
+                      00435 
+                      00436 
+                      00437 
+                      00438 
+                      00439 ;-----------------------------------------------------------------
+                      00440         ;--------- Chuong trinh LCD  ----------;
+                      00441 
+00059C                00442 decode_ascii ;----- Giai ma 4bit du lieu trong decode_var ra char -----;                
+00059C 0E0F           00443         movlw   0x0f
+00059E 16??           00444         andwf   decode_var
+0005A0 0E0A           00445         movlw   0x0a
+0005A2 60??           00446         cpfslt  decode_var
+0005A4 D???           00447         bra     decode_1        ; Lon hon 9
+0005A6 0E30           00448         movlw   0x30    ; Nho hon hay bang 9
+0005A8 26??           00449 decode_2        addwf   decode_var
+0005AA C??? F???      00450         movff   decode_var,char
+0005AE 0012           00451         return
+0005B0 0E37           00452 decode_1        movlw   0x37
+0005B2 D???           00453         bra     decode_2
+                      00454 
+0005B4                00455 lcd_print_char;--- trong char
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 10
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0005B4 0E00           00456                         movlw           .0
+0005B6 62??           00457                         cpfseq          row
+0005B8 D???           00458                         bra                     print1
+0005BA 0E10           00459                         movlw           .16                                     ; current_row = 0
+0005BC 62??           00460                         cpfseq          col
+0005BE D???           00461                         bra                     print1
+0005C0 0E01           00462                         movlw           .1                                      ; current_col = 16
+0005C2 6E??           00463                         movwf           row                             
+0005C4 0E00           00464                         movlw           .0
+0005C6 6E??           00465                         movwf           col
+0005C8 EC?? F???      00466                         call            lcd_goto_xy                     ; Chuyen cursor ve 1,0
+0005CC 0E01           00467 print1          movlw           .1
+0005CE 62??           00468                         cpfseq          row
+0005D0 D???           00469                         bra                     print2
+0005D2 0E10           00470                         movlw           .16                                     ; current_row = 1
+0005D4 62??           00471                         cpfseq          col
+0005D6 D???           00472                         bra                     print2
+0005D8 0E00           00473                         movlw           .0                                      ; current_col = 16
+0005DA 6E??           00474                         movwf           row                             
+0005DC 6E??           00475                         movwf           col
+0005DE EC?? F???      00476                         call            lcd_goto_xy                     ; Chuyen cursor ve 0,0
+0005E2 EC?? F???      00477 print2          call            lcd_write_data          ; Xuat data ra LCD
+0005E6 0E01           00478                         movlw           .1      
+0005E8 26??           00479                         addwf           row                                     ; Tang row len 1
+0005EA 0012           00480                         return
+                      00481 
+0005EC                00482 lcd_write_data ;----- trong char
+0005EC 888C           00483                         bsf                     LCD_RS                          ; Cho phep xuat data
+0005EE C??? F???      00484                         movff           char,data_4bit          ; Xuat 4 bit data cao ra
+0005F2 3A??           00485                         swapf           data_4bit
+0005F4 EC?? F???      00486                         call            lcd_write_4bits 
+0005F8 C??? F???      00487                         movff           char,data_4bit          ; Xuat 4 bit data thap ra
+0005FC EC?? F???      00488                         call            lcd_write_4bits
+000600 0012           00489                         return
+                      00490 
+000602 0E01           00491 lcd_clear       movlw           0x01
+000604 6E??           00492                         movwf           command
+000606 EC?? F???      00493                         call            lcd_write_cmd           ; Xoa man hinh LCD
+00060A EC?? F???      00494                         call            delay15ms                       ; Giu cham 15msec
+00060E 0E00           00495                         movlw           0x00
+000610 6E??           00496                         movwf           row
+000612 0E00           00497                         movlw           0x00
+000614 6E??           00498                         movwf           col
+000616 EC?? F???      00499                         call            lcd_goto_xy                     ; Cursor ve toa do 0,0
+00061A 0012           00500                         return
+                      00501 
+00061C                00502 lcd_goto_xy     ;---- Thiet lap cursor toi toa do x.y
+00061C 0E14           00503                         movlw           .20
+00061E 60??           00504                         cpfslt          col
+000620 D???           00505                         bra                     xy3                                     ; Qua 19 cot
+000622 0E04           00506                         movlw           .4
+000624 60??           00507                         cpfslt          row
+000626 D???           00508                         bra                     xy3                                     ; Qua 3 hang
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 11
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+000628 0E02           00509                         movlw           .2
+00062A 60??           00510                         cpfslt          row
+00062C D???           00511                         bra                     xy1                                     
+00062E 0E40           00512                         movlw           0x40                            ; Hang nho hon 2
+000630 02??           00513                         mulwf           row
+000632 CFF3 F???      00514                         movff           PRODL,addr
+000636 50??           00515                         movf            col,w
+000638 26??           00516                         addwf           addr
+00063A 8E??           00517 xy2                     bsf                     addr,7                          ; Thiet lap bit7 cua len
+                            h
+00063C C??? F???      00518                         movff           addr,command
+000640 EC?? F???      00519                         call            lcd_write_cmd           ; Phat lenh
+000644 0012           00520 xy3                     return
+000646 0E40           00521 xy1                     movlw           0x40                            ; Hang lon hon hay bang 2
+000648 02??           00522                         mulwf           row
+00064A CFF3 F???      00523                         movff           PRODL,addr
+00064E 50??           00524                         movf            col,w
+000650 26??           00525                         addwf           addr
+000652 88??           00526                         bsf                     addr,4
+000654 84??           00527                         bsf                     addr,2
+000656 D???           00528                         bra                     xy2             
+                      00529 
+000658 EC?? F???      00530 init_lcd        call            init_portD
+00065C 0E00           00531                         movlw           .0
+00065E 6E??           00532                         movwf           col
+000660 6E??           00533                         movwf           row
+000662 EC?? F???      00534                         call            delay15ms                       ; Giu cham 15msec
+000666 988C           00535                         bcf                     LCD_RS                          ; Cho phep gui lenh
+000668 0E03           00536                         movlw           0x03
+00066A 6E??           00537                         movwf           data_4bit
+00066C EC?? F???      00538                         call            lcd_write_4bits         ; 
+000670 EC?? F???      00539                         call            delay5ms
+000674 EC?? F???      00540                         call            lcd_write_4bits         ;
+000678 EC?? F???      00541                         call            delay100us
+00067C EC?? F???      00542                         call            lcd_write_4bits         ;
+000680 0E02           00543                         movlw           0x02
+000682 6E??           00544                         movwf           data_4bit
+000684 EC?? F???      00545                         call            lcd_write_4bits         ; Lenh bat dau 4bit
+000688 0E28           00546                         movlw           0x28
+00068A 6E??           00547                         movwf           command
+00068C EC?? F???      00548                         call            lcd_write_cmd           ; Hien thi 2 hang, ma tran 5x7
+000690 0E0C           00549                         movlw           0x0c
+000692 6E??           00550                         movwf           command
+000694 EC?? F???      00551                         call            lcd_write_cmd           ; Display = on
+000698 0E06           00552                         movlw           0x06
+00069A 6E??           00553                         movwf           command
+00069C EC?? F???      00554                         call            lcd_write_cmd           ; Set mode : dich phai tang dan
+0006A0 EC?? F???      00555                         call            lcd_clear
+0006A4 0012           00556                         return
+                      00557 
+0006A6 6A8C           00558 init_portD      clrf            LATD
+0006A8 9095           00559                         bcf                     LCD_D4_DIR                      ; Data Output
+0006AA 9295           00560                         bcf                     LCD_D5_DIR
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 12
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0006AC 9495           00561                         bcf                     LCD_D6_DIR
+0006AE 9695           00562                         bcf                     LCD_D7_DIR                      
+0006B0 9C95           00563                         bcf                     LCD_E_DIR                       ; Control output
+0006B2 9A95           00564                         bcf                     LCD_RW_DIR
+0006B4 9895           00565                         bcf                     LCD_RS_DIR
+0006B6 9E95           00566                         bcf                     LCD_ON_DIR
+0006B8 8E8C           00567                         bsf                     LCD_ON                          ; Cap nguon cho LCD
+0006BA 0012           00568                         return
+                      00569 
+0006BC                00570 lcd_write_cmd ;----- trong command
+                      00571                         ;call           lcd_wait_busy           ; LCD san sang
+0006BC EC?? F???      00572                         call delay5ms                                   ;MODIFIED
+0006C0 988C           00573                         bcf                     LCD_RS                          ; Cho phep lenh
+0006C2 C??? F???      00574                         movff           command,data_4bit               
+0006C6 3A??           00575                         swapf           data_4bit
+0006C8 EC?? F???      00576                         call            lcd_write_4bits         ; Xuat 4bit lenh cao 
+0006CC C??? F???      00577                         movff           command,data_4bit
+0006D0 EC?? F???      00578                         call            lcd_write_4bits         ; Xuat 4bit lenh thap
+0006D4 0012           00579                         return
+                      00580 
+0006D6                00581 lcd_wait_busy;----- Cho LCD san sang
+0006D6 8695           00582                         bsf                     LCD_D7_DIR                      ; RD3 input
+0006D8 8495           00583                         bsf                     LCD_D6_DIR                      ; RD2 input
+0006DA 8295           00584                         bsf                     LCD_D5_DIR                      ; RD1 input
+0006DC 8095           00585                         bsf                     LCD_D4_DIR                      ; RD0 input
+0006DE 988C           00586                         bcf                     LCD_RS                          ; Cho phep lenh
+0006E0 8A8C           00587                         bsf                     LCD_RW                          ; Cho phep doc
+0006E2 EC?? F???      00588                         call            delay1us                        ; Cho xong
+0006E6 8C8C           00589                         bsf                     LCD_E                           ; Cho phep LCD hoat dong
+0006E8 EC?? F???      00590                         call            delay1us                        ; Giu cham phan cung
+0006EC B683           00591 wait1           btfsc           LCD_D,3                         ; Kiem tra LCD xong chua ?
+0006EE D???           00592                         bra                     wait1
+0006F0 9C8C           00593                         bcf                     LCD_E                           ; Xong, cam LCD
+0006F2 9695           00594                         bcf                     LCD_D7_DIR                      ; RD3 output
+0006F4 9495           00595                         bcf                     LCD_D6_DIR                      ; RD2 output
+0006F6 9295           00596                         bcf                     LCD_D5_DIR                      ; RD1 output
+0006F8 9095           00597                         bcf                     LCD_D4_DIR                      ; RD0 output
+0006FA 0012           00598                         return
+                      00599 
+0006FC                00600 lcd_write_4bits ;----- Lay 4bit thap trong data_4bit
+0006FC 9A8C           00601                         bcf                     LCD_RW                          ; Cho phep viet
+0006FE 8C8C           00602                         bsf                     LCD_E                           ; Cho phep LCD hoat dong
+000700 EC?? F???      00603                         call            write_4bit_to_portD     ; Xuat 4bit data
+000704 EC?? F???      00604                         call            delay10us                       ; Giu cham 10 usec
+000708 9C8C           00605                         bcf                     LCD_E                           ; CAM LCD hoat dong
+00070A EC?? F???      00606                         call            delay10us                       ; Giu cham 10 usec
+00070E 0012           00607                         return
+                      00608 
+                      00609 ;---Kiem tra 4bit thap trong data_4bit va thiet lap 4bit cao trong portD
+000710                00610 write_4bit_to_portD
+000710 B0??           00611                         btfsc           data_4bit,0
+000712 D???           00612                         bra                     set_bit_0
+000714 908C           00613                         bcf                     LCD_D4
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 13
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+000716 B2??           00614 tt1                     btfsc           data_4bit,1
+000718 D???           00615                         bra                     set_bit_1
+00071A 928C           00616                         bcf                     LCD_D5
+00071C B4??           00617 tt2                     btfsc           data_4bit,2
+00071E D???           00618                         bra                     set_bit_2
+000720 948C           00619                         bcf                     LCD_D6
+000722 B6??           00620 tt3                     btfsc           data_4bit,3
+000724 D???           00621                         bra                     set_bit_3
+000726 968C           00622                         bcf                     LCD_D7
+000728 0012           00623 tt4                     return
+00072A 808C           00624 set_bit_0       bsf                     LCD_D4
+00072C D???           00625                         bra                     tt1
+00072E 828C           00626 set_bit_1       bsf                     LCD_D5
+000730 D???           00627                         bra                     tt2
+000732 848C           00628 set_bit_2       bsf                     LCD_D6
+000734 D???           00629                         bra                     tt3
+000736 868C           00630 set_bit_3       bsf                     LCD_D7
+000738 D???           00631                         bra                     tt4
+                      00632 
+00073A 0E0F           00633 delay15ms       movlw           .15
+00073C 6E??           00634                         movwf           delay_1
+00073E EC?? F???      00635 dl_15ms         call            delay1ms
+000742 2E??           00636                         decfsz          delay_1
+000744 D???           00637                         bra                     dl_15ms
+000746 0012           00638                         return
+                      00639 
+000748 0E05           00640 delay5ms        movlw           .5
+00074A 6E??           00641                         movwf           delay_1
+00074C EC?? F???      00642 dl_5ms          call            delay1ms
+000750 2E??           00643                         decfsz          delay_1
+000752 D???           00644                         bra                     dl_5ms
+000754 0012           00645                         return
+                      00646 
+                      00647 
+000756 0EF8           00648 delay1ms        movlw           .248
+000758 6E??           00649                         movwf           delay
+00075A EC?? F???      00650 dl_1ms          call            delay1us
+00075E 2E??           00651                         decfsz          delay
+000760 D???           00652                         bra                     dl_1ms
+000762 0012           00653                         return
+                      00654 
+000764 0E62           00655 delay100us      movlw           .98
+000766 6E??           00656                         movwf           delay
+000768 EC?? F???      00657 dl100us         call            delay1us
+00076C 2E??           00658                         decfsz          delay
+00076E D???           00659                         bra                     dl100us
+000770 0012           00660                         return
+                      00661 
+000772 0E09           00662 delay10us       movlw           .9
+000774 6E??           00663                         movwf           delay
+000776 EC?? F???      00664 dl10us          call            delay1us
+00077A 2E??           00665                         decfsz          delay
+00077C D???           00666                         bra                     dl10us
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 14
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+00077E 0012           00667                         return
+                      00668 
+                      00669 
+000780 0000           00670 delay1us        nop                     ; Tan so 4MHz
+000782 0000           00671                         nop                     ; 1 chu ky
+000784 0012           00672                         return          ; 2 chu ky
+                      00673 
+000786 0010           00674 isr_high        retfie
+                      00675 
+000788 0010           00676 isr_low         retfie
+                      00677 
+                      00678                         end
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 15
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+A                                 00000000
+ABDEN                             00000000
+ABDOVF                            00000007
+ACCESS                            00000000
+ACKDT                             00000005
+ACKEN                             00000004
+ACKSTAT                           00000006
+ACQT0                             00000003
+ACQT1                             00000004
+ACQT2                             00000005
+ADCON0                            00000FC2
+ADCON1                            00000FC1
+ADCON2                            00000FC0
+ADCS0                             00000000
+ADCS1                             00000001
+ADCS2                             00000002
+ADDEN                             00000003
+ADEN                              00000003
+ADFM                              00000007
+ADIE                              00000006
+ADIF                              00000006
+ADIP                              00000006
+ADON                              00000000
+ADRES                             00000FC3
+ADRESH                            00000FC4
+ADRESL                            00000FC3
+AN0                               00000000
+AN1                               00000001
+AN10                              00000001
+AN11                              00000004
+AN12                              00000000
+AN2                               00000002
+AN3                               00000003
+AN4                               00000005
+AN5                               00000000
+AN6                               00000001
+AN7                               00000002
+AN8                               00000002
+AN9                               00000003
+BANKED                            00000001
+BAUDCON                           00000FB8
+BAUDCTL                           00000FB8
+BCLIE                             00000003
+BCLIF                             00000003
+BCLIP                             00000003
+BF                                00000000
+BGST                              00000005
+BOR                               00000000
+BRG16                             00000003
+BRGH                              00000002
+BSR                               00000FE0
+C                                 00000000
+C1INV                             00000004
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 16
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+C1OUT                             00000006
+C2INV                             00000005
+C2OUT                             00000007
+CCP1                              00000002
+CCP1CON                           00000FBD
+CCP1IE                            00000002
+CCP1IF                            00000002
+CCP1IP                            00000002
+CCP1M0                            00000000
+CCP1M1                            00000001
+CCP1M2                            00000002
+CCP1M3                            00000003
+CCP1X                             00000005
+CCP1Y                             00000004
+CCP2CON                           00000FBA
+CCP2IE                            00000000
+CCP2IF                            00000000
+CCP2IP                            00000000
+CCP2M0                            00000000
+CCP2M1                            00000001
+CCP2M2                            00000002
+CCP2M3                            00000003
+CCP2X                             00000005
+CCP2Y                             00000004
+CCP2_PORTB                        00000003
+CCP2_PORTC                        00000001
+CCPR1                             00000FBE
+CCPR1H                            00000FBF
+CCPR1L                            00000FBE
+CCPR2                             00000FBB
+CCPR2H                            00000FBC
+CCPR2L                            00000FBB
+CFGS                              00000006
+CHS0                              00000002
+CHS1                              00000003
+CHS2                              00000004
+CHS3                              00000005
+CIS                               00000003
+CK                                00000006
+CKE                               00000006
+CKP                               00000004
+CLKI                              00000007
+CLKO                              00000006
+CM0                               00000000
+CM1                               00000001
+CM2                               00000002
+CMCON                             00000FB4
+CMIE                              00000006
+CMIF                              00000006
+CMIP                              00000006
+CREN                              00000004
+CS                                00000002
+CSRC                              00000007
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 17
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+CVR0                              00000000
+CVR1                              00000001
+CVR2                              00000002
+CVR3                              00000003
+CVRCON                            00000FB5
+CVREF                             00000002
+CVREN                             00000007
+CVROE                             00000006
+CVRR                              00000005
+CVRSS                             00000004
+D                                 00000005
+DC                                00000001
+DC1B0                             00000004
+DC1B1                             00000005
+DC2B0                             00000004
+DC2B1                             00000005
+DDRA                              TRISA
+DDRB                              TRISB
+DDRC                              TRISC
+DDRD                              TRISD
+DDRE                              TRISE
+DONE                              00000001
+D_A                               00000005
+ECCP1AS                           00000FB6
+ECCPAS0                           00000004
+ECCPAS1                           00000005
+ECCPAS2                           00000006
+ECCPASE                           00000007
+EEADR                             00000FA9
+EECON1                            00000FA6
+EECON2                            00000FA7
+EEDATA                            00000FA8
+EEIE                              00000004
+EEIF                              00000004
+EEIP                              00000004
+EEPGD                             00000007
+FAST                              00000001
+FERR                              00000002
+FLTS                              00000002
+FREE                              00000004
+FSR0                              00000000
+FSR0H                             00000FEA
+FSR0L                             00000FE9
+FSR1                              00000001
+FSR1H                             00000FE2
+FSR1L                             00000FE1
+FSR2                              00000002
+FSR2H                             00000FDA
+FSR2L                             00000FD9
+GCEN                              00000007
+GIE                               00000007
+GIEH                              00000007
+GIEL                              00000006
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 18
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+GO                                00000001
+GO_DONE                           00000001
+HLVDCON                           00000FD2
+HLVDEN                            00000004
+HLVDIE                            00000002
+HLVDIF                            00000002
+HLVDIP                            00000002
+HLVDL0                            00000000
+HLVDL1                            00000001
+HLVDL2                            00000002
+HLVDL3                            00000003
+IBF                               00000007
+IBOV                              00000005
+IDLEN                             00000007
+INDF0                             00000FEF
+INDF1                             00000FE7
+INDF2                             00000FDF
+INT0                              00000000
+INT0E                             00000004
+INT0F                             00000001
+INT0IE                            00000004
+INT0IF                            00000001
+INT1                              00000001
+INT1E                             00000003
+INT1F                             00000000
+INT1IE                            00000003
+INT1IF                            00000000
+INT1IP                            00000006
+INT1P                             00000006
+INT2                              00000002
+INT2E                             00000004
+INT2F                             00000001
+INT2IE                            00000004
+INT2IF                            00000001
+INT2IP                            00000007
+INT2P                             00000007
+INTCON                            00000FF2
+INTCON2                           00000FF1
+INTCON3                           00000FF0
+INTEDG0                           00000006
+INTEDG1                           00000005
+INTEDG2                           00000004
+INTSRC                            00000007
+IOFS                              00000002
+IPEN                              00000007
+IPR1                              00000F9F
+IPR2                              00000FA2
+IRCF0                             00000004
+IRCF1                             00000005
+IRCF2                             00000006
+IRVST                             00000005
+IVRST                             00000005
+KBI0                              00000004
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 19
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+KBI1                              00000005
+KBI2                              00000006
+KBI3                              00000007
+LATA                              00000F89
+LATA0                             00000000
+LATA1                             00000001
+LATA2                             00000002
+LATA3                             00000003
+LATA4                             00000004
+LATA5                             00000005
+LATA6                             00000006
+LATA7                             00000007
+LATB                              00000F8A
+LATB0                             00000000
+LATB1                             00000001
+LATB2                             00000002
+LATB3                             00000003
+LATB4                             00000004
+LATB5                             00000005
+LATB6                             00000006
+LATB7                             00000007
+LATC                              00000F8B
+LATC0                             00000000
+LATC1                             00000001
+LATC2                             00000002
+LATC3                             00000003
+LATC4                             00000004
+LATC5                             00000005
+LATC6                             00000006
+LATC7                             00000007
+LATD                              00000F8C
+LATD0                             00000000
+LATD1                             00000001
+LATD2                             00000002
+LATD3                             00000003
+LATD4                             00000004
+LATD5                             00000005
+LATD6                             00000006
+LATD7                             00000007
+LATE                              00000F8D
+LATE0                             00000000
+LATE1                             00000001
+LATE2                             00000002
+LCD_D                             PORTD
+LCD_D4                            LATD,RD0
+LCD_D4_DIR                        TRISD,RD0
+LCD_D5                            LATD,RD1
+LCD_D5_DIR                        TRISD,RD1
+LCD_D6                            LATD,RD2
+LCD_D6_DIR                        TRISD,RD2
+LCD_D7                            LATD,RD3
+LCD_D7_DIR                        TRISD,RD3
+LCD_E                             LATD,RD6
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 20
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+LCD_E_DIR                         TRISD,RD6
+LCD_ON                            LATD,RD7
+LCD_ON_DIR                        TRISD,RD7
+LCD_RS                            LATD,RD4
+LCD_RS_DIR                        TRISD,RD4
+LCD_RW                            LATD,RD5
+LCD_RW_DIR                        TRISD,RD5
+LVDCON                            00000FD2
+LVDEN                             00000004
+LVDIE                             00000002
+LVDIF                             00000002
+LVDIN                             00000005
+LVDIP                             00000002
+LVDL0                             00000000
+LVDL1                             00000001
+LVDL2                             00000002
+LVDL3                             00000003
+LVV0                              00000000
+LVV1                              00000001
+LVV2                              00000002
+LVV3                              00000003
+MCLR                              00000003
+N                                 00000004
+NOT_A                             00000005
+NOT_ADDRESS                       00000005
+NOT_BOR                           00000000
+NOT_CS                            00000002
+NOT_DONE                          00000001
+NOT_MCLR                          00000003
+NOT_PD                            00000002
+NOT_POR                           00000001
+NOT_RBPU                          00000007
+NOT_RD                            00000000
+NOT_RI                            00000004
+NOT_SS                            00000005
+NOT_T1SYNC                        00000002
+NOT_T3SYNC                        00000002
+NOT_TO                            00000003
+NOT_W                             00000002
+NOT_WR                            00000001
+NOT_WRITE                         00000002
+OBF                               00000006
+OERR                              00000001
+OSC1                              00000007
+OSC2                              00000006
+OSCCON                            00000FD3
+OSCFIE                            00000007
+OSCFIF                            00000007
+OSCFIP                            00000007
+OSCTUNE                           00000F9B
+OSTS                              00000003
+OV                                00000003
+P                                 00000004
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 21
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+P1B                               00000005
+P1C                               00000006
+P1D                               00000007
+P1M0                              00000006
+P1M1                              00000007
+PC                                00000FF9
+PCFG0                             00000000
+PCFG1                             00000001
+PCFG2                             00000002
+PCFG3                             00000003
+PCL                               00000FF9
+PCLATH                            00000FFA
+PCLATU                            00000FFB
+PD                                00000002
+PDC0                              00000000
+PDC1                              00000001
+PDC2                              00000002
+PDC3                              00000003
+PDC4                              00000004
+PDC5                              00000005
+PDC6                              00000006
+PEIE                              00000006
+PEN                               00000002
+PGC                               00000006
+PGD                               00000007
+PGM                               00000005
+PIE1                              00000F9D
+PIE2                              00000FA0
+PIR1                              00000F9E
+PIR2                              00000FA1
+PLLEN                             00000006
+PLUSW0                            00000FEB
+PLUSW1                            00000FE3
+PLUSW2                            00000FDB
+POR                               00000001
+PORTA                             00000F80
+PORTB                             00000F81
+PORTC                             00000F82
+PORTD                             00000F83
+PORTE                             00000F84
+POSTDEC0                          00000FED
+POSTDEC1                          00000FE5
+POSTDEC2                          00000FDD
+POSTINC0                          00000FEE
+POSTINC1                          00000FE6
+POSTINC2                          00000FDE
+PR2                               00000FCB
+PREINC0                           00000FEC
+PREINC1                           00000FE4
+PREINC2                           00000FDC
+PROD                              00000FF3
+PRODH                             00000FF4
+PRODL                             00000FF3
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 22
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+PRSEN                             00000007
+PSA                               00000003
+PSP0                              00000000
+PSP1                              00000001
+PSP2                              00000002
+PSP3                              00000003
+PSP4                              00000004
+PSP5                              00000005
+PSP6                              00000006
+PSP7                              00000007
+PSPIE                             00000007
+PSPIF                             00000007
+PSPIP                             00000007
+PSPMODE                           00000004
+PSSAC0                            00000002
+PSSAC1                            00000003
+PSSBD0                            00000000
+PSSBD1                            00000001
+PWM1CON                           00000FB7
+R                                 00000002
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+RA5                               00000005
+RA6                               00000006
+RA7                               00000007
+RB0                               00000000
+RB1                               00000001
+RB2                               00000002
+RB3                               00000003
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RBIP                              00000000
+RBPU                              00000007
+RC0                               00000000
+RC1                               00000001
+RC2                               00000002
+RC3                               00000003
+RC4                               00000004
+RC5                               00000005
+RC6                               00000006
+RC7                               00000007
+RCEN                              00000003
+RCIDL                             00000006
+RCIE                              00000005
+RCIF                              00000005
+RCIP                              00000005
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 23
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RCMT                              00000006
+RCON                              00000FD0
+RCREG                             00000FAE
+RCSTA                             00000FAB
+RD                                00000000
+RD0                               00000000
+RD1                               00000001
+RD16                              00000007
+RD2                               00000002
+RD3                               00000003
+RD4                               00000004
+RD5                               00000005
+RD6                               00000006
+RD7                               00000007
+RE0                               00000000
+RE1                               00000001
+RE2                               00000002
+RE3                               00000003
+RI                                00000004
+RSEN                              00000001
+RX                                00000007
+RX9                               00000006
+RX9D                              00000000
+RXDTP                             00000005
+R_W                               00000002
+S                                 00000003
+SBOREN                            00000006
+SCK                               00000003
+SCKP                              00000004
+SCL                               00000003
+SCS0                              00000000
+SCS1                              00000001
+SDA                               00000004
+SDI                               00000004
+SDO                               00000005
+SEN                               00000000
+SENDB                             00000003
+SMP                               00000007
+SP0                               00000000
+SP1                               00000001
+SP2                               00000002
+SP3                               00000003
+SP4                               00000004
+SPBRG                             00000FAF
+SPBRGH                            00000FB0
+SPEN                              00000007
+SREN                              00000005
+SS                                00000005
+SSPADD                            00000FC8
+SSPBUF                            00000FC9
+SSPCON1                           00000FC6
+SSPCON2                           00000FC5
+SSPEN                             00000005
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 24
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+SSPIE                             00000003
+SSPIF                             00000003
+SSPIP                             00000003
+SSPM0                             00000000
+SSPM1                             00000001
+SSPM2                             00000002
+SSPM3                             00000003
+SSPOV                             00000006
+SSPSTAT                           00000FC7
+STATUS                            00000FD8
+STKFUL                            00000007
+STKOVF                            00000007
+STKPTR                            00000FFC
+STKUNF                            00000006
+SWDTE                             00000000
+SWDTEN                            00000000
+SYNC                              00000004
+T08BIT                            00000006
+T0CKI                             00000004
+T0CON                             00000FD5
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0PS0                             00000000
+T0PS1                             00000001
+T0PS2                             00000002
+T0SE                              00000004
+T13CKI                            00000000
+T1CKI                             00000000
+T1CKPS0                           00000004
+T1CKPS1                           00000005
+T1CON                             00000FCD
+T1OSCEN                           00000003
+T1OSI                             00000001
+T1OSO                             00000000
+T1RUN                             00000006
+T1SYNC                            00000002
+T2CKPS0                           00000000
+T2CKPS1                           00000001
+T2CON                             00000FCA
+T2OUTPS0                          00000003
+T2OUTPS1                          00000004
+T2OUTPS2                          00000005
+T2OUTPS3                          00000006
+T3CCP1                            00000003
+T3CCP2                            00000006
+T3CKPS0                           00000004
+T3CKPS1                           00000005
+T3CON                             00000FB1
+T3SYNC                            00000002
+TABLAT                            00000FF5
+TBLPTR                            00000FF6
+TBLPTRH                           00000FF7
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 25
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TBLPTRL                           00000FF6
+TBLPTRU                           00000FF8
+TMR0H                             00000FD7
+TMR0IE                            00000005
+TMR0IF                            00000002
+TMR0IP                            00000002
+TMR0L                             00000FD6
+TMR0ON                            00000007
+TMR1CS                            00000001
+TMR1H                             00000FCF
+TMR1IE                            00000000
+TMR1IF                            00000000
+TMR1IP                            00000000
+TMR1L                             00000FCE
+TMR1ON                            00000000
+TMR2                              00000FCC
+TMR2IE                            00000001
+TMR2IF                            00000001
+TMR2IP                            00000001
+TMR2ON                            00000002
+TMR3CS                            00000001
+TMR3H                             00000FB3
+TMR3IE                            00000001
+TMR3IF                            00000001
+TMR3IP                            00000001
+TMR3L                             00000FB2
+TMR3ON                            00000000
+TO                                00000003
+TOS                               00000FFD
+TOSH                              00000FFE
+TOSL                              00000FFD
+TOSU                              00000FFF
+TRISA                             00000F92
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISA5                            00000005
+TRISA6                            00000006
+TRISA7                            00000007
+TRISB                             00000F93
+TRISB0                            00000000
+TRISB1                            00000001
+TRISB2                            00000002
+TRISB3                            00000003
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+TRISB7                            00000007
+TRISC                             00000F94
+TRISC0                            00000000
+TRISC1                            00000001
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 26
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TRISC2                            00000002
+TRISC3                            00000003
+TRISC4                            00000004
+TRISC5                            00000005
+TRISC6                            00000006
+TRISC7                            00000007
+TRISD                             00000F95
+TRISD0                            00000000
+TRISD1                            00000001
+TRISD2                            00000002
+TRISD3                            00000003
+TRISD4                            00000004
+TRISD5                            00000005
+TRISD6                            00000006
+TRISD7                            00000007
+TRISE                             00000F96
+TRISE0                            00000000
+TRISE1                            00000001
+TRISE2                            00000002
+TRMT                              00000001
+TUN0                              00000000
+TUN1                              00000001
+TUN2                              00000002
+TUN3                              00000003
+TUN4                              00000004
+TX                                00000006
+TX9                               00000006
+TX9D                              00000000
+TXCKP                             00000004
+TXEN                              00000005
+TXIE                              00000004
+TXIF                              00000004
+TXIP                              00000004
+TXREG                             00000FAD
+TXSTA                             00000FAC
+UA                                00000001
+VCFG0                             00000004
+VCFG1                             00000005
+VDIRMAG                           00000007
+VPP                               00000003
+VREFN                             00000002
+VREFP                             00000003
+W                                 00000000
+WCOL                              00000007
+WDTCON                            00000FD1
+WR                                00000001
+WREG                              00000FE8
+WREN                              00000002
+WRERR                             00000003
+WUE                               00000001
+Z                                 00000002
+_BOREN_NOSLP_2L                   000000FD
+_BOREN_OFF_2L                     000000F9
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 27
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_BOREN_ON_2L                      000000FB
+_BOREN_SBORDIS_2L                 000000FF
+_BORV_0_2L                        000000E7
+_BORV_1_2L                        000000EF
+_BORV_2_2L                        000000F7
+_BORV_3_2L                        000000FF
+_CCP2MX_PORTBE_3H                 000000FE
+_CCP2MX_PORTC_3H                  000000FF
+_CONFIG1H                         00300001
+_CONFIG2H                         00300003
+_CONFIG2L                         00300002
+_CONFIG3H                         00300005
+_CONFIG4L                         00300006
+_CONFIG5H                         00300009
+_CONFIG5L                         00300008
+_CONFIG6H                         0030000B
+_CONFIG6L                         0030000A
+_CONFIG7H                         0030000D
+_CONFIG7L                         0030000C
+_CP0_OFF_5L                       000000FF
+_CP0_ON_5L                        000000FE
+_CP1_OFF_5L                       000000FF
+_CP1_ON_5L                        000000FD
+_CP2_OFF_5L                       000000FF
+_CP2_ON_5L                        000000FB
+_CP3_OFF_5L                       000000FF
+_CP3_ON_5L                        000000F7
+_CPB_OFF_5H                       000000FF
+_CPB_ON_5H                        000000BF
+_CPD_OFF_5H                       000000FF
+_CPD_ON_5H                        0000007F
+_DEBUG_OFF_4L                     000000FF
+_DEBUG_ON_4L                      0000007F
+_DEVID1                           003FFFFE
+_DEVID2                           003FFFFF
+_EBTR0_OFF_7L                     000000FF
+_EBTR0_ON_7L                      000000FE
+_EBTR1_OFF_7L                     000000FF
+_EBTR1_ON_7L                      000000FD
+_EBTR2_OFF_7L                     000000FF
+_EBTR2_ON_7L                      000000FB
+_EBTR3_OFF_7L                     000000FF
+_EBTR3_ON_7L                      000000F7
+_EBTRB_OFF_7H                     000000FF
+_EBTRB_ON_7H                      000000BF
+_FCMEN_OFF_1H                     000000BF
+_FCMEN_ON_1H                      000000FF
+_IDLOC0                           00200000
+_IDLOC1                           00200001
+_IDLOC2                           00200002
+_IDLOC3                           00200003
+_IDLOC4                           00200004
+_IDLOC5                           00200005
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 28
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_IDLOC6                           00200006
+_IDLOC7                           00200007
+_IESO_OFF_1H                      0000007F
+_IESO_ON_1H                       000000FF
+_LPT1OSC_OFF_3H                   000000FB
+_LPT1OSC_ON_3H                    000000FF
+_LVP_OFF_4L                       000000FB
+_LVP_ON_4L                        000000FF
+_MCLRE_OFF_3H                     0000007F
+_MCLRE_ON_3H                      000000FF
+_OSC_ECIO6_1H                     000000F5
+_OSC_EC_1H                        000000F4
+_OSC_HSPLL_1H                     000000F6
+_OSC_HS_1H                        000000F2
+_OSC_INTIO67_1H                   000000F8
+_OSC_INTIO7_1H                    000000F9
+_OSC_LP_1H                        000000F0
+_OSC_RCIO6_1H                     000000F7
+_OSC_RC_1H                        000000F3
+_OSC_XT_1H                        000000F1
+_PBADEN_OFF_3H                    000000FD
+_PBADEN_ON_3H                     000000FF
+_PRG_000C                         0000000C
+_PWRT_OFF_2L                      000000FF
+_PWRT_ON_2L                       000000FE
+_STVREN_OFF_4L                    000000FE
+_STVREN_ON_4L                     000000FF
+_WDTPS_1024_2H                    000000F5
+_WDTPS_128_2H                     000000EF
+_WDTPS_16384_2H                   000000FD
+_WDTPS_16_2H                      000000E9
+_WDTPS_1_2H                       000000E1
+_WDTPS_2048_2H                    000000F7
+_WDTPS_256_2H                     000000F1
+_WDTPS_2_2H                       000000E3
+_WDTPS_32768_2H                   000000FF
+_WDTPS_32_2H                      000000EB
+_WDTPS_4096_2H                    000000F9
+_WDTPS_4_2H                       000000E5
+_WDTPS_512_2H                     000000F3
+_WDTPS_64_2H                      000000ED
+_WDTPS_8192_2H                    000000FB
+_WDTPS_8_2H                       000000E7
+_WDT_OFF_2H                       000000FE
+_WDT_ON_2H                        000000FF
+_WRT0_OFF_6L                      000000FF
+_WRT0_ON_6L                       000000FE
+_WRT1_OFF_6L                      000000FF
+_WRT1_ON_6L                       000000FD
+_WRT2_OFF_6L                      000000FF
+_WRT2_ON_6L                       000000FB
+_WRT3_OFF_6L                      000000FF
+_WRT3_ON_6L                       000000F7
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 29
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_WRTB_OFF_6H                      000000FF
+_WRTB_ON_6H                       000000BF
+_WRTC_OFF_6H                      000000FF
+_WRTC_ON_6H                       000000DF
+_WRTD_OFF_6H                      000000FF
+_WRTD_ON_6H                       0000007F
+_XINST_OFF_4L                     000000BF
+_XINST_ON_4L                      000000FF
+__18F4520                         00000001
+__DEBUG                           1
+a_var                             00000000
+addr                              00000014
+adjust                            0000011E
+b_var                             00000001
+bit0                              00000524
+bit1                              0000052E
+bit2                              00000538
+bit3                              00000544
+bit4                              00000550
+bit5                              0000055C
+bit6                              00000568
+bit7                              00000574
+bit8                              00000580
+bit9                              0000058E
+char                              00000015
+col                               00000013
+command                           00000010
+con_0                             000001C4
+con_1                             000001B6
+con_2                             000001A8
+con_3                             0000019A
+con_4                             0000018C
+con_5                             0000017E
+con_6                             00000170
+con_7                             00000162
+con_8                             00000154
+con_9                             00000146
+continue2                         00000136
+continue3                         0000012A
+continue_devide                   000001D8
+convert                           00000138
+data_4bit                         00000011
+debug                             000000E0
+debug1                            000000E8
+decode_1                          000005B0
+decode_2                          000005A8
+decode_ascii                      0000059C
+decode_var                        00000018
+delay                             0000000E
+delay100us                        00000764
+delay10us                         00000772
+delay15ms                         0000073A
+delay1ms                          00000756
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 30
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+delay1us                          00000780
+delay5ms                          00000748
+delay_1                           0000000F
+dem_BCD                           00000017
+devide8                           000001C6
+devide8_next                      000001CC
+dl100us                           00000768
+dl10us                            00000776
+dl_15ms                           0000073E
+dl_1ms                            0000075A
+dl_1sec                           00000016
+dl_5ms                            0000074C
+finish_round                      000001F4
+high_temp                         0000000C
+in_high                           00000007
+in_low                            00000008
+init_AD                           000000F4
+init_convert                      000000EC
+init_lcd                          00000658
+init_portD                        000006A6
+isr_high                          00000786
+isr_low                           00000788
+lcd_clear                         00000602
+lcd_goto_xy                       0000061C
+lcd_print_char                    000005B4
+lcd_wait_busy                     000006D6
+lcd_write_4bits                   000006FC
+lcd_write_cmd                     000006BC
+lcd_write_data                    000005EC
+low_temp                          0000000D
+main                              00000008
+main_continue                     00000024
+mod                               00000003
+out1                              00000004
+out2                              00000005
+out3                              00000006
+print1                            000005CC
+print2                            000005E2
+result                            00000002
+round_number                      000001E0
+row                               00000012
+set_bit_0                         0000072A
+set_bit_1                         0000072E
+set_bit_2                         00000732
+set_bit_3                         00000736
+start                             00000000
+sum_product                       00000108
+table                             00000500
+temp1                             00000009
+temp2                             0000000A
+temp3                             0000000B
+tt1                               00000716
+tt2                               0000071C
+MPASM  5.37                     PROJECTAD.ASM   10-28-2012  16:58:24         PAGE 31
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+tt3                               00000722
+tt4                               00000728
+wait1                             000006EC
+write_4bit_to_portD               00000710
+xy1                               00000646
+xy2                               0000063A
+xy3                               00000644
+
+Errors   :     0
+Warnings :    13 reported,     0 suppressed
+Messages :     0 reported,     0 suppressed
+
+

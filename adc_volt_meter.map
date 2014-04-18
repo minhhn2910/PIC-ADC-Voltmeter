@@ -1,0 +1,246 @@
+MPLINK 4.37, Linker
+Linker Map File - Created Sun Oct 28 16:58:26 2012
+
+                                 Section Info
+                  Section       Type    Address   Location Size(Bytes)
+                ---------  ---------  ---------  ---------  ---------
+                    .code       code   0x000000    program   0x000004
+                   .cinit    romdata   0x000004    program   0x000002
+                   .org_0       code   0x000008    program   0x000004
+                   .org_1       code   0x000018    program   0x000004
+                      PRG       code   0x00001c    program   0x0001f6
+                   .org_2       code   0x000500    program   0x00028a
+                   .udata      udata   0x000080       data   0x000019
+
+
+
+                              Program Memory Usage 
+                               Start         End      
+                           ---------   ---------      
+                            0x000000    0x000005      
+                            0x000008    0x00000b      
+                            0x000018    0x000211      
+                            0x000500    0x000789      
+            1166 out of 33048 program addresses used, program memory utilization is 3%
+
+
+
+                              Symbols - Sorted by Name
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+                _PRG_000C   0x000028    program     static C:\pic\project\projectAD.asm
+                   adjust   0x00013a    program     static C:\pic\project\projectAD.asm
+                     bit0   0x000524    program     static C:\pic\project\projectAD.asm
+                     bit1   0x00052e    program     static C:\pic\project\projectAD.asm
+                     bit2   0x000538    program     static C:\pic\project\projectAD.asm
+                     bit3   0x000544    program     static C:\pic\project\projectAD.asm
+                     bit4   0x000550    program     static C:\pic\project\projectAD.asm
+                     bit5   0x00055c    program     static C:\pic\project\projectAD.asm
+                     bit6   0x000568    program     static C:\pic\project\projectAD.asm
+                     bit7   0x000574    program     static C:\pic\project\projectAD.asm
+                     bit8   0x000580    program     static C:\pic\project\projectAD.asm
+                     bit9   0x00058e    program     static C:\pic\project\projectAD.asm
+                    con_0   0x0001e0    program     static C:\pic\project\projectAD.asm
+                    con_1   0x0001d2    program     static C:\pic\project\projectAD.asm
+                    con_2   0x0001c4    program     static C:\pic\project\projectAD.asm
+                    con_3   0x0001b6    program     static C:\pic\project\projectAD.asm
+                    con_4   0x0001a8    program     static C:\pic\project\projectAD.asm
+                    con_5   0x00019a    program     static C:\pic\project\projectAD.asm
+                    con_6   0x00018c    program     static C:\pic\project\projectAD.asm
+                    con_7   0x00017e    program     static C:\pic\project\projectAD.asm
+                    con_8   0x000170    program     static C:\pic\project\projectAD.asm
+                    con_9   0x000162    program     static C:\pic\project\projectAD.asm
+                continue2   0x000152    program     static C:\pic\project\projectAD.asm
+                continue3   0x000146    program     static C:\pic\project\projectAD.asm
+          continue_devide   0x0001f4    program     static C:\pic\project\projectAD.asm
+                  convert   0x000154    program     static C:\pic\project\projectAD.asm
+                    debug   0x0000fc    program     static C:\pic\project\projectAD.asm
+                   debug1   0x000104    program     static C:\pic\project\projectAD.asm
+                 decode_1   0x0005b0    program     static C:\pic\project\projectAD.asm
+                 decode_2   0x0005a8    program     static C:\pic\project\projectAD.asm
+             decode_ascii   0x00059c    program     static C:\pic\project\projectAD.asm
+               delay100us   0x000764    program     static C:\pic\project\projectAD.asm
+                delay10us   0x000772    program     static C:\pic\project\projectAD.asm
+                delay15ms   0x00073a    program     static C:\pic\project\projectAD.asm
+                 delay1ms   0x000756    program     static C:\pic\project\projectAD.asm
+                 delay1us   0x000780    program     static C:\pic\project\projectAD.asm
+                 delay5ms   0x000748    program     static C:\pic\project\projectAD.asm
+                  devide8   0x0001e2    program     static C:\pic\project\projectAD.asm
+             devide8_next   0x0001e8    program     static C:\pic\project\projectAD.asm
+                  dl100us   0x000768    program     static C:\pic\project\projectAD.asm
+                   dl10us   0x000776    program     static C:\pic\project\projectAD.asm
+                  dl_15ms   0x00073e    program     static C:\pic\project\projectAD.asm
+                   dl_1ms   0x00075a    program     static C:\pic\project\projectAD.asm
+                   dl_5ms   0x00074c    program     static C:\pic\project\projectAD.asm
+             finish_round   0x000210    program     static C:\pic\project\projectAD.asm
+                  init_AD   0x000110    program     static C:\pic\project\projectAD.asm
+             init_convert   0x000108    program     static C:\pic\project\projectAD.asm
+                 init_lcd   0x000658    program     static C:\pic\project\projectAD.asm
+               init_portD   0x0006a6    program     static C:\pic\project\projectAD.asm
+                 isr_high   0x000786    program     static C:\pic\project\projectAD.asm
+                  isr_low   0x000788    program     static C:\pic\project\projectAD.asm
+                lcd_clear   0x000602    program     static C:\pic\project\projectAD.asm
+              lcd_goto_xy   0x00061c    program     static C:\pic\project\projectAD.asm
+           lcd_print_char   0x0005b4    program     static C:\pic\project\projectAD.asm
+            lcd_wait_busy   0x0006d6    program     static C:\pic\project\projectAD.asm
+          lcd_write_4bits   0x0006fc    program     static C:\pic\project\projectAD.asm
+            lcd_write_cmd   0x0006bc    program     static C:\pic\project\projectAD.asm
+           lcd_write_data   0x0005ec    program     static C:\pic\project\projectAD.asm
+                     main   0x000024    program     static C:\pic\project\projectAD.asm
+            main_continue   0x000040    program     static C:\pic\project\projectAD.asm
+                   print1   0x0005cc    program     static C:\pic\project\projectAD.asm
+                   print2   0x0005e2    program     static C:\pic\project\projectAD.asm
+             round_number   0x0001fc    program     static C:\pic\project\projectAD.asm
+                set_bit_0   0x00072a    program     static C:\pic\project\projectAD.asm
+                set_bit_1   0x00072e    program     static C:\pic\project\projectAD.asm
+                set_bit_2   0x000732    program     static C:\pic\project\projectAD.asm
+                set_bit_3   0x000736    program     static C:\pic\project\projectAD.asm
+                    start   0x00001c    program     static C:\pic\project\projectAD.asm
+              sum_product   0x000124    program     static C:\pic\project\projectAD.asm
+                    table   0x000500    program     static C:\pic\project\projectAD.asm
+                      tt1   0x000716    program     static C:\pic\project\projectAD.asm
+                      tt2   0x00071c    program     static C:\pic\project\projectAD.asm
+                      tt3   0x000722    program     static C:\pic\project\projectAD.asm
+                      tt4   0x000728    program     static C:\pic\project\projectAD.asm
+                    wait1   0x0006ec    program     static C:\pic\project\projectAD.asm
+      write_4bit_to_portD   0x000710    program     static C:\pic\project\projectAD.asm
+                      xy1   0x000646    program     static C:\pic\project\projectAD.asm
+                      xy2   0x00063a    program     static C:\pic\project\projectAD.asm
+                      xy3   0x000644    program     static C:\pic\project\projectAD.asm
+                    a_var   0x000080       data     static C:\pic\project\projectAD.asm
+                     addr   0x000094       data     static C:\pic\project\projectAD.asm
+                    b_var   0x000081       data     static C:\pic\project\projectAD.asm
+                     char   0x000095       data     static C:\pic\project\projectAD.asm
+                      col   0x000093       data     static C:\pic\project\projectAD.asm
+                  command   0x000090       data     static C:\pic\project\projectAD.asm
+                data_4bit   0x000091       data     static C:\pic\project\projectAD.asm
+               decode_var   0x000098       data     static C:\pic\project\projectAD.asm
+                    delay   0x00008e       data     static C:\pic\project\projectAD.asm
+                  delay_1   0x00008f       data     static C:\pic\project\projectAD.asm
+                  dem_BCD   0x000097       data     static C:\pic\project\projectAD.asm
+                  dl_1sec   0x000096       data     static C:\pic\project\projectAD.asm
+                high_temp   0x00008c       data     static C:\pic\project\projectAD.asm
+                  in_high   0x000087       data     static C:\pic\project\projectAD.asm
+                   in_low   0x000088       data     static C:\pic\project\projectAD.asm
+                 low_temp   0x00008d       data     static C:\pic\project\projectAD.asm
+                      mod   0x000083       data     static C:\pic\project\projectAD.asm
+                     out1   0x000084       data     static C:\pic\project\projectAD.asm
+                     out2   0x000085       data     static C:\pic\project\projectAD.asm
+                     out3   0x000086       data     static C:\pic\project\projectAD.asm
+                   result   0x000082       data     static C:\pic\project\projectAD.asm
+                      row   0x000092       data     static C:\pic\project\projectAD.asm
+                    temp1   0x000089       data     static C:\pic\project\projectAD.asm
+                    temp2   0x00008a       data     static C:\pic\project\projectAD.asm
+                    temp3   0x00008b       data     static C:\pic\project\projectAD.asm
+
+
+
+                              Symbols - Sorted by Address
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+                    start   0x00001c    program     static C:\pic\project\projectAD.asm
+                     main   0x000024    program     static C:\pic\project\projectAD.asm
+                _PRG_000C   0x000028    program     static C:\pic\project\projectAD.asm
+            main_continue   0x000040    program     static C:\pic\project\projectAD.asm
+                    debug   0x0000fc    program     static C:\pic\project\projectAD.asm
+                   debug1   0x000104    program     static C:\pic\project\projectAD.asm
+             init_convert   0x000108    program     static C:\pic\project\projectAD.asm
+                  init_AD   0x000110    program     static C:\pic\project\projectAD.asm
+              sum_product   0x000124    program     static C:\pic\project\projectAD.asm
+                   adjust   0x00013a    program     static C:\pic\project\projectAD.asm
+                continue3   0x000146    program     static C:\pic\project\projectAD.asm
+                continue2   0x000152    program     static C:\pic\project\projectAD.asm
+                  convert   0x000154    program     static C:\pic\project\projectAD.asm
+                    con_9   0x000162    program     static C:\pic\project\projectAD.asm
+                    con_8   0x000170    program     static C:\pic\project\projectAD.asm
+                    con_7   0x00017e    program     static C:\pic\project\projectAD.asm
+                    con_6   0x00018c    program     static C:\pic\project\projectAD.asm
+                    con_5   0x00019a    program     static C:\pic\project\projectAD.asm
+                    con_4   0x0001a8    program     static C:\pic\project\projectAD.asm
+                    con_3   0x0001b6    program     static C:\pic\project\projectAD.asm
+                    con_2   0x0001c4    program     static C:\pic\project\projectAD.asm
+                    con_1   0x0001d2    program     static C:\pic\project\projectAD.asm
+                    con_0   0x0001e0    program     static C:\pic\project\projectAD.asm
+                  devide8   0x0001e2    program     static C:\pic\project\projectAD.asm
+             devide8_next   0x0001e8    program     static C:\pic\project\projectAD.asm
+          continue_devide   0x0001f4    program     static C:\pic\project\projectAD.asm
+             round_number   0x0001fc    program     static C:\pic\project\projectAD.asm
+             finish_round   0x000210    program     static C:\pic\project\projectAD.asm
+                    table   0x000500    program     static C:\pic\project\projectAD.asm
+                     bit0   0x000524    program     static C:\pic\project\projectAD.asm
+                     bit1   0x00052e    program     static C:\pic\project\projectAD.asm
+                     bit2   0x000538    program     static C:\pic\project\projectAD.asm
+                     bit3   0x000544    program     static C:\pic\project\projectAD.asm
+                     bit4   0x000550    program     static C:\pic\project\projectAD.asm
+                     bit5   0x00055c    program     static C:\pic\project\projectAD.asm
+                     bit6   0x000568    program     static C:\pic\project\projectAD.asm
+                     bit7   0x000574    program     static C:\pic\project\projectAD.asm
+                     bit8   0x000580    program     static C:\pic\project\projectAD.asm
+                     bit9   0x00058e    program     static C:\pic\project\projectAD.asm
+             decode_ascii   0x00059c    program     static C:\pic\project\projectAD.asm
+                 decode_2   0x0005a8    program     static C:\pic\project\projectAD.asm
+                 decode_1   0x0005b0    program     static C:\pic\project\projectAD.asm
+           lcd_print_char   0x0005b4    program     static C:\pic\project\projectAD.asm
+                   print1   0x0005cc    program     static C:\pic\project\projectAD.asm
+                   print2   0x0005e2    program     static C:\pic\project\projectAD.asm
+           lcd_write_data   0x0005ec    program     static C:\pic\project\projectAD.asm
+                lcd_clear   0x000602    program     static C:\pic\project\projectAD.asm
+              lcd_goto_xy   0x00061c    program     static C:\pic\project\projectAD.asm
+                      xy2   0x00063a    program     static C:\pic\project\projectAD.asm
+                      xy3   0x000644    program     static C:\pic\project\projectAD.asm
+                      xy1   0x000646    program     static C:\pic\project\projectAD.asm
+                 init_lcd   0x000658    program     static C:\pic\project\projectAD.asm
+               init_portD   0x0006a6    program     static C:\pic\project\projectAD.asm
+            lcd_write_cmd   0x0006bc    program     static C:\pic\project\projectAD.asm
+            lcd_wait_busy   0x0006d6    program     static C:\pic\project\projectAD.asm
+                    wait1   0x0006ec    program     static C:\pic\project\projectAD.asm
+          lcd_write_4bits   0x0006fc    program     static C:\pic\project\projectAD.asm
+      write_4bit_to_portD   0x000710    program     static C:\pic\project\projectAD.asm
+                      tt1   0x000716    program     static C:\pic\project\projectAD.asm
+                      tt2   0x00071c    program     static C:\pic\project\projectAD.asm
+                      tt3   0x000722    program     static C:\pic\project\projectAD.asm
+                      tt4   0x000728    program     static C:\pic\project\projectAD.asm
+                set_bit_0   0x00072a    program     static C:\pic\project\projectAD.asm
+                set_bit_1   0x00072e    program     static C:\pic\project\projectAD.asm
+                set_bit_2   0x000732    program     static C:\pic\project\projectAD.asm
+                set_bit_3   0x000736    program     static C:\pic\project\projectAD.asm
+                delay15ms   0x00073a    program     static C:\pic\project\projectAD.asm
+                  dl_15ms   0x00073e    program     static C:\pic\project\projectAD.asm
+                 delay5ms   0x000748    program     static C:\pic\project\projectAD.asm
+                   dl_5ms   0x00074c    program     static C:\pic\project\projectAD.asm
+                 delay1ms   0x000756    program     static C:\pic\project\projectAD.asm
+                   dl_1ms   0x00075a    program     static C:\pic\project\projectAD.asm
+               delay100us   0x000764    program     static C:\pic\project\projectAD.asm
+                  dl100us   0x000768    program     static C:\pic\project\projectAD.asm
+                delay10us   0x000772    program     static C:\pic\project\projectAD.asm
+                   dl10us   0x000776    program     static C:\pic\project\projectAD.asm
+                 delay1us   0x000780    program     static C:\pic\project\projectAD.asm
+                 isr_high   0x000786    program     static C:\pic\project\projectAD.asm
+                  isr_low   0x000788    program     static C:\pic\project\projectAD.asm
+                    a_var   0x000080       data     static C:\pic\project\projectAD.asm
+                    b_var   0x000081       data     static C:\pic\project\projectAD.asm
+                   result   0x000082       data     static C:\pic\project\projectAD.asm
+                      mod   0x000083       data     static C:\pic\project\projectAD.asm
+                     out1   0x000084       data     static C:\pic\project\projectAD.asm
+                     out2   0x000085       data     static C:\pic\project\projectAD.asm
+                     out3   0x000086       data     static C:\pic\project\projectAD.asm
+                  in_high   0x000087       data     static C:\pic\project\projectAD.asm
+                   in_low   0x000088       data     static C:\pic\project\projectAD.asm
+                    temp1   0x000089       data     static C:\pic\project\projectAD.asm
+                    temp2   0x00008a       data     static C:\pic\project\projectAD.asm
+                    temp3   0x00008b       data     static C:\pic\project\projectAD.asm
+                high_temp   0x00008c       data     static C:\pic\project\projectAD.asm
+                 low_temp   0x00008d       data     static C:\pic\project\projectAD.asm
+                    delay   0x00008e       data     static C:\pic\project\projectAD.asm
+                  delay_1   0x00008f       data     static C:\pic\project\projectAD.asm
+                  command   0x000090       data     static C:\pic\project\projectAD.asm
+                data_4bit   0x000091       data     static C:\pic\project\projectAD.asm
+                      row   0x000092       data     static C:\pic\project\projectAD.asm
+                      col   0x000093       data     static C:\pic\project\projectAD.asm
+                     addr   0x000094       data     static C:\pic\project\projectAD.asm
+                     char   0x000095       data     static C:\pic\project\projectAD.asm
+                  dl_1sec   0x000096       data     static C:\pic\project\projectAD.asm
+                  dem_BCD   0x000097       data     static C:\pic\project\projectAD.asm
+               decode_var   0x000098       data     static C:\pic\project\projectAD.asm
+
+
